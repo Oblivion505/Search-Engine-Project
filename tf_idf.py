@@ -49,27 +49,54 @@ class Tf_idf():
 
     def process_query(self, query: str) -> str:
 
-        if query not in self._index.get_vocab().keys():
+        query_terms: set = set(tok.create_tokens(query))
 
-            return "Query term does not appear in any documents.\n"
+        ## W.I.P.
+
+        if len(set(query_terms) & self._index.get_vocab().keys()) == 0:
+
+            return "Query terms do not appear in any documents.\n"
         
-        document_scores: list = []
-        
-        query_postings: dict = self._index.get_postings()[self._index.get_vocab()[query]]
-        query_docIDs: set = set(query_postings.keys())
+        document_scores: dict = {}
+
+        query_postings: dict
+        query_docIDs: set
 
         N: int = len(self._index.get_docIDs())
-        df: int = len(query_docIDs)
 
-        for docID in query_docIDs:
+        for term in query_terms:
 
-            tf: int = self.calculate_tf(query_postings[docID])
+            if term not in self._index.get_vocab().keys():
 
-            tf_idf: float = self.calculate_tf_idf(tf, df, N)
+                continue
 
-            document_scores.append([docID, tf_idf])
+            query_postings = self._index.get_postings()[self._index.get_vocab()[term]]
+
+            query_docIDs = set(query_postings.keys())
+
+            df: int = len(query_docIDs)
+
+            for docID in query_docIDs:
+
+                tf: int = self.calculate_tf(query_postings[docID])
+
+                tf_idf: float = self.calculate_tf_idf(tf, df, N)
+
+                if docID in document_scores.keys():
+
+                    document_scores[docID].append(tf_idf)
+                
+                else:
+
+                    document_scores[docID] = [tf_idf]
+
+        summed_scores: list = []
         
-        ordered_scores = sorted(document_scores, key = lambda x: x[1], reverse = True) 
+        for docID, scores in document_scores.items():
+
+            summed_scores.append([docID, sum(scores)])
+        
+        ordered_scores = sorted(summed_scores, key = lambda x: x[1], reverse = True) 
 
         query_result: str = ""
 
@@ -101,7 +128,7 @@ def test_tf_idf() -> None:
 
     ranking: Tf_idf = Tf_idf(index)
 
-    ranking.process_query("Game")
+    print(ranking.process_query("Game Games Mario Nintendo Final Egypt a b c d e f"))
 
 if __name__ == "__main__":
 
