@@ -16,6 +16,8 @@ class Tf_idf():
         "h1": 5,
         "h2": 3,
         "h3": 2,
+        "h4": 1,
+        "li": 1,
         "p": 1,
         "meta": 1
 
@@ -51,8 +53,6 @@ class Tf_idf():
 
         query_terms: set = set(tok.create_tokens(query))
 
-        ## W.I.P.
-
         if len(set(query_terms) & self._index.get_vocab().keys()) == 0:
 
             return "Query terms do not appear in any documents.\n"
@@ -70,7 +70,7 @@ class Tf_idf():
 
                 continue
 
-            query_postings = self._index.get_postings()[self._index.get_vocab()[term]]
+            query_postings = self._index.get_postings()[str(self._index.get_vocab()[term])]
 
             query_docIDs = set(query_postings.keys())
 
@@ -100,9 +100,18 @@ class Tf_idf():
 
         query_result: str = ""
 
+        score_count: int = 0
+
         for score in ordered_scores:
 
             query_result += self._index.get_docName(score[0]) + " -> " + str(score[1]) + "\n\n"
+
+            score_count += 1
+
+            # To get top 10 results only
+            if score_count == 10:
+
+                break
 
         return query_result
 
@@ -124,7 +133,8 @@ def test_tf_idf() -> None:
 
     docs: dict = {"Luxor 3": texts[0], "Final Fantasy Tactics A2": texts[1], "Super Paper Mario": texts[2]}
 
-    index: Inverted_index = Inverted_index(docs)
+    index: Inverted_index = Inverted_index()
+    index.new_index(docs)
 
     ranking: Tf_idf = Tf_idf(index)
 

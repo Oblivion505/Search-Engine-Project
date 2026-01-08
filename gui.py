@@ -60,7 +60,8 @@ def test_gui():
 
     docs: dict = {"Luxor 3": texts[0], "Final Fantasy Tactics A2": texts[1], "Super Paper Mario": texts[2]}
 
-    index: Inverted_index = Inverted_index(docs)
+    index: Inverted_index = Inverted_index()
+    index.new_index(docs)
 
     ranking: Tf_idf = Tf_idf(index)
 
