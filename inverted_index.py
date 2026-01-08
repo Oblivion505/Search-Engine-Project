@@ -2,19 +2,23 @@
 
 import tokenizor as tok
 
+import json
+
 class Inverted_index():
 
     _docIDs: dict
     _vocab: dict
     _postings: dict
 
-    def __init__(self, docs: dict) -> None:
+    def __init__(self) -> None:
 
         self._docIDs = {}
         self._vocab = {}
         self._postings = {}
+    
+    def new_index(self, docs: dict) -> None:
 
-        self._set_docIDs(set(docs.keys()))
+        self._add_docIDs(set(docs.keys()))
 
         doc_tokens: dict = {}
         token_keys: list= []
@@ -43,8 +47,54 @@ class Inverted_index():
                         appearances[self.get_docID(doc_name)] = frequencies
             
             self._add_postings(vocabID, appearances)
+    
+    def save_index(self) -> None:
 
-    def _set_docIDs(self, doc_names: set) -> None:
+        save_data: dict = {
+
+            "docIDs": self._docIDs,
+
+            "vocab": self._vocab,
+
+            "postings": self._postings
+        }
+
+        json_string: str = json.dumps(save_data, indent = 4)
+
+        with open("saved_data/index.json", "w", encoding = "utf-8") as f:
+
+            f.write(json_string)
+    
+    def load_index(self) -> bool:
+
+        with open("saved_data/index.json", "a+", encoding = "utf-8") as f:
+
+            file_data: dict = {}
+
+            if not f.read(1) == None:
+
+                f.seek(0)
+                file_data = json.load(f)
+    
+        if not len(file_data) == 0:
+
+            if "docIDs" in file_data.keys():
+
+                self._docIDs = file_data["docIDs"]
+            
+            if "vocab" in file_data.keys():
+
+                self._vocab = file_data["vocab"]
+            
+            if "postings" in file_data.keys():
+
+                self._postings = file_data["postings"]
+            
+            return True
+        
+        return False
+
+    def _add_docIDs(self, doc_names: set) -> None:
 
         id: int = 0
 
@@ -110,7 +160,8 @@ def test_inverted_index():
 
     docs: dict = {"Luxor 3": texts[0], "Final Fantasy Tactics A2": texts[1], "Super Paper Mario": texts[2]}
 
-    index: Inverted_index = Inverted_index(docs)
+    index: Inverted_index = Inverted_index()
+    index.new_index(docs)
 
     print("Doc IDs: " + str(index.get_docIDs()) + "\n")
     print("Vocab: " + str(index.get_vocab()) + "\n")
