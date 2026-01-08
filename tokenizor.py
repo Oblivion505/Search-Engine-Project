@@ -20,16 +20,6 @@ def create_tokens(text: str) -> list:
 
     return [tok for tok in tokens if tok not in STOPWORDS]
 
-def get_document_title(html_text: str) -> str:
-
-    soup: bs.BeautifulSoup = bs.BeautifulSoup(html_text, "html.parser")
-
-    if soup.title:
-
-        return soup.title.get_text()
-
-    return ""
-
 def tokenize_document(html_text: str) -> dict: 
 
     soup: bs.BeautifulSoup = bs.BeautifulSoup(html_text, "html.parser")
@@ -44,6 +34,8 @@ def tokenize_document(html_text: str) -> dict:
     elements["h1"] = [h1.get_text() for h1 in soup.find_all('h1')]
     elements["h2"] = [h2.get_text() for h2 in soup.find_all('h2')]
     elements["h3"] = [h3.get_text() for h3 in soup.find_all('h3')]
+    elements["h4"] = [h4.get_text() for h4 in soup.find_all('h4')]
+    elements["li"] = [li.get_text() for li in soup.find_all('li')]
     elements["p"] = [p.get_text() for p in soup.find_all('p')]
 
     keywords_tag: bs.Tag | None = soup.find('meta', attrs={"name": "keywords"})
