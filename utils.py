@@ -1,4 +1,4 @@
-# Supplies utility functions that can be used throughout the program
+# --- Supplies utility functions that can be used throughout the program ---
 
 import os
 

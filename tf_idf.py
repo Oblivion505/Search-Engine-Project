@@ -1,4 +1,4 @@
-# --- Ranks documents on their relevance to a user query using Tf-idf ---
+# --- Ranks documents on their relevance to a user query using TF-IDF ---
 
 import math
 
@@ -96,15 +96,19 @@ class Tf_idf():
 
             summed_scores.append([docID, sum(scores)])
         
-        ordered_scores = sorted(summed_scores, key = lambda x: x[1], reverse = True) 
+        return self.produce_results(summed_scores)
+    
+    def produce_results(self, document_scores: list) -> str:
 
-        query_result: str = ""
+        ordered_scores = sorted(document_scores, key = lambda x: x[1], reverse = True) 
+
+        query_results: str = ""
 
         score_count: int = 0
 
         for score in ordered_scores:
 
-            query_result += self._index.get_docName(score[0]) + " -> " + str(score[1]) + "\n\n"
+            query_results += self._index.get_docName(score[0]) + " -> " + str(score[1]) + "\n\n"
 
             score_count += 1
 
@@ -112,8 +116,8 @@ class Tf_idf():
             if score_count == 10:
 
                 break
-
-        return query_result
+        
+        return query_results
 
 def test_tf_idf() -> None:
 
@@ -134,7 +138,7 @@ def test_tf_idf() -> None:
     docs: dict = {"Luxor 3": texts[0], "Final Fantasy Tactics A2": texts[1], "Super Paper Mario": texts[2]}
 
     index: Inverted_index = Inverted_index()
-    index.new_index(docs)
+    index.create(docs)
 
     ranking: Tf_idf = Tf_idf(index)
 

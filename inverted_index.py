@@ -16,7 +16,7 @@ class Inverted_index():
         self._vocab = {}
         self._postings = {}
     
-    def new_index(self, docs: dict) -> None:
+    def create(self, docs: dict) -> None:
 
         self._add_docIDs(set(docs.keys()))
 
@@ -48,7 +48,7 @@ class Inverted_index():
             
             self._add_postings(vocabID, appearances)
     
-    def save_index(self) -> None:
+    def save(self) -> None:
 
         save_data: dict = {
 
@@ -65,7 +65,7 @@ class Inverted_index():
 
             f.write(json_string)
     
-    def load_index(self) -> bool:
+    def load(self) -> bool:
 
         with open("saved_data/index.json", "a+", encoding = "utf-8") as f:
 
@@ -161,7 +161,7 @@ def test_inverted_index():
     docs: dict = {"Luxor 3": texts[0], "Final Fantasy Tactics A2": texts[1], "Super Paper Mario": texts[2]}
 
     index: Inverted_index = Inverted_index()
-    index.new_index(docs)
+    index.create(docs)
 
     print("Doc IDs: " + str(index.get_docIDs()) + "\n")
     print("Vocab: " + str(index.get_vocab()) + "\n")
