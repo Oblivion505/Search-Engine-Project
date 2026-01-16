@@ -10,14 +10,18 @@ class Tf_idf():
 
     _index: Inverted_index
 
+    # Tag Weights should be ints
     _tag_weights: dict = {
 
-        "title": 10,
+        "title": 50,
         "h1": 5,
         "h2": 3,
         "h3": 2,
         "h4": 1,
+        "h5": 1,
+        "h6": 1,
         "li": 1,
+        "td": 1,
         "p": 1,
         "meta": 1
 
