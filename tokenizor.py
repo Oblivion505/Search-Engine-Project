@@ -9,7 +9,9 @@ nltk.download("punkt_tab")
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 
+PS: PorterStemmer = PorterStemmer()
 STOPWORDS: list = stopwords.words("english")
 SPECIAL_CHARS: str = r'[^\w\s]' # Regex pattern : matches any character that is not alphanumeric or a whitespace
 
@@ -18,7 +20,7 @@ def create_tokens(text: str) -> list:
     alphanumeric_text: str = re.sub(SPECIAL_CHARS, "", text) 
     tokens: list = word_tokenize(alphanumeric_text, "english")
 
-    return [tok for tok in tokens if tok not in STOPWORDS]
+    return [PS.stem(tok) for tok in tokens if tok not in STOPWORDS]
 
 def tokenize_document(html_text: str) -> dict: 
 
@@ -35,7 +37,10 @@ def tokenize_document(html_text: str) -> dict:
     elements["h2"] = [h2.get_text() for h2 in soup.find_all('h2')]
     elements["h3"] = [h3.get_text() for h3 in soup.find_all('h3')]
     elements["h4"] = [h4.get_text() for h4 in soup.find_all('h4')]
+    elements["h5"] = [h5.get_text() for h5 in soup.find_all('h5')]
+    elements["h6"] = [h6.get_text() for h6 in soup.find_all('h6')]
     elements["li"] = [li.get_text() for li in soup.find_all('li')]
+    elements["td"] = [td.get_text() for td in soup.find_all('td')]
     elements["p"] = [p.get_text() for p in soup.find_all('p')]
 
     keywords_tag: bs.Tag | None = soup.find('meta', attrs={"name": "keywords"})
