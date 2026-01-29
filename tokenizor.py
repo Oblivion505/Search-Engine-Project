@@ -1,4 +1,4 @@
-# --- Tokenizes the user's input query ---
+# --- Tokenizes html documents and queries ---
 
 import bs4 as bs
 import regex as re
@@ -6,21 +6,100 @@ import regex as re
 import nltk.downloader
 nltk.download("stopwords")
 nltk.download("punkt_tab")
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger_eng')
 
 from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
+from nltk.corpus import stopwords, wordnet
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk import pos_tag
 
-PS: PorterStemmer = PorterStemmer()
+STEMMER: PorterStemmer = PorterStemmer()
+LEMMATIZER: WordNetLemmatizer = WordNetLemmatizer()
 STOPWORDS: list = stopwords.words("english")
 SPECIAL_CHARS: str = r'[^\w\s]' # Regex pattern : matches any character that is not alphanumeric or a whitespace
 
+# Removes special chars from text and sets it to lowercase, then tokenizes it
 def create_tokens(text: str) -> list:
 
+    text = text.lower()
     alphanumeric_text: str = re.sub(SPECIAL_CHARS, "", text) 
     tokens: list = word_tokenize(alphanumeric_text, "english")
 
-    return [PS.stem(tok) for tok in tokens if tok not in STOPWORDS]
+    return tokens
+
+# Removes stopwords from tokens
+def clean_tokens(tokens: list) -> list:
+
+    return [tok for tok in tokens if tok not in STOPWORDS]
+
+# Applies basic stemming to tokens
+def stem_tokens(tokens: list) -> list:
+
+    return [STEMMER.stem(tok) for tok in tokens]
+
+# Applies lemmatization to tokens using parts of speech
+def lemmatize_tokens(tokens: list) -> list:
+
+    token_pos_pairs: list = pos_tag(tokens)
+
+    # Parts of speech must be converted to be recognised by lemmatizer
+    converted_pairs: list = []
+
+    for pair in token_pos_pairs:
+
+        pos: str = pair[1]
+
+        if pos.startswith('V'):
+
+            converted_pairs.append((pair[0], wordnet.VERB))
+
+        elif pos.startswith('J'):
+
+            converted_pairs.append((pair[0], wordnet.ADJ))
+
+        elif pos.startswith('R'):
+
+            converted_pairs.append((pair[0], wordnet.ADV))
+
+        # Default POS is noun
+        else:
+
+            converted_pairs.append((pair[0], wordnet.NOUN))
+
+    lemmatized_tokens: list = []
+
+    for pair in converted_pairs:
+
+        lemmatized_tokens.append(LEMMATIZER.lemmatize(pair[0], pair[1]))
+
+    return lemmatized_tokens
+
+# Adds related terms to query tokens to improve recall
+def expand_query(query_tokens: list) -> list:
+
+    expanded_tokens = []
+
+    for token in query_tokens:
+
+        expanded_tokens.append(token)
+
+        for synset in wordnet.synsets(token):
+
+            for lemma in synset.lemmas():
+
+                expanded_tokens.append(lemma.name())
+
+    return expanded_tokens
+
+def tokenize_query(query: str) -> list:
+
+    tokens: list = create_tokens(query)
+    tokens = clean_tokens(tokens)
+    tokens = expand_query(tokens)
+    tokens = lemmatize_tokens(tokens)
+
+    return tokens
 
 def tokenize_document(html_text: str) -> dict: 
 
@@ -50,20 +129,24 @@ def tokenize_document(html_text: str) -> dict:
         elements["meta"] = [keywords_tag.get("content", "")]
     
     # Tokenize elements and clean the tokens 
-    tokens: dict = {}
+    all_tokens: dict = {}
 
     for key, element in elements.items():
 
-        tokens[key] = []
+        all_tokens[key] = []
 
         for text in element:
 
-            tokens[key] += create_tokens(text)
+            tokens: list = create_tokens(text)
+            tokens = clean_tokens(tokens)
+            tokens = lemmatize_tokens(tokens)
+
+            all_tokens[key] += tokens
 
     # Counts token frequencies
     frequency_pairs: dict = {}
 
-    for key, element in tokens.items():
+    for key, element in all_tokens.items():
 
         for token in element:
 
