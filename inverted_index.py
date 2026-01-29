@@ -1,22 +1,29 @@
 # --- Inverted Index Structure for document tokens ---
 
+import json
+
 import tokenizor as tok
 
-import json
+import utils
 
 class Inverted_index():
 
-    _docIDs: dict
-    _vocab: dict
-    _postings: dict
+    _docIDs: dict # Maps docIDs to doc names
+    _vocab: dict # Maps vocab names to vocabIDs
+    _postings: dict # Maps vocabIDs to docIDs of appearances
+    _doc_lengths: dict # Maps docIDs to doc lengths (for BM25 ranking)
 
     def __init__(self) -> None:
 
         self._docIDs = {}
         self._vocab = {}
         self._postings = {}
+        self._doc_lengths = {}
     
     def create(self, docs: dict) -> None:
+
+        # Reset instance variables if data has already been loaded to them
+        self.__init__()
 
         self._add_docIDs(set(docs.keys()))
 
@@ -24,6 +31,8 @@ class Inverted_index():
         token_keys: list= []
 
         for doc_name, doc in docs.items():
+
+            self._doc_lengths[self.get_docID(doc_name)] = utils.get_document_length(docs[doc_name])
 
             token_dict: dict = tok.tokenize_document(doc)
 
@@ -56,7 +65,9 @@ class Inverted_index():
 
             "vocab": self._vocab,
 
-            "postings": self._postings
+            "postings": self._postings,
+
+            "doc_lengths": self._doc_lengths
         }
 
         json_string: str = json.dumps(save_data, indent = 4)
@@ -90,6 +101,10 @@ class Inverted_index():
 
                 self._postings = file_data["postings"]
             
+            if "doc_lengths" in file_data.keys():
+
+                self._doc_lengths = file_data["doc_lengths"]
+            
             return True
         
         return False
@@ -116,7 +131,7 @@ class Inverted_index():
 
             self._postings[key] = appearances
     
-    def get_docName(self, docID: int) -> str:
+    def get_doc_name(self, docID: int) -> str:
 
         return self._docIDs[docID] 
     
@@ -129,6 +144,26 @@ class Inverted_index():
                 return key
         
         return None
+    
+    def get_doc_length(self, docID: int) -> int:
+
+        return self._doc_lengths[docID]
+    
+    def get_average_doc_length(self) -> int:
+
+        num_docs: int = len(self._doc_lengths)
+
+        if num_docs == 0:
+
+            return 0
+
+        total_length: int = 0
+
+        for doc_length in self._doc_lengths.values():
+
+            total_length += doc_length
+
+        return total_length
 
     def get_docIDs(self) -> dict:
 
@@ -141,6 +176,10 @@ class Inverted_index():
     def get_postings(self) -> dict:
 
         return self._postings
+    
+    def get_doc_lengths(self) -> dict:
+
+        return self._doc_lengths
 
 def test_inverted_index():
 
