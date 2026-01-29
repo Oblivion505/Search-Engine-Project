@@ -63,3 +63,32 @@ def get_docs(dir_name: str) -> dict:
             docs[file_name] = doc_text
     
     return docs
+
+def get_document_elements(html_text: str) -> dict:
+
+    soup: bs.BeautifulSoup = bs.BeautifulSoup(html_text, "html.parser")
+
+    # Get elements of interest from document
+    elements: dict = {}
+
+    if soup.title:
+
+        elements["title"] = [soup.title.get_text()]
+
+    elements["h1"] = [h1.get_text() for h1 in soup.find_all('h1')]
+    elements["h2"] = [h2.get_text() for h2 in soup.find_all('h2')]
+    elements["h3"] = [h3.get_text() for h3 in soup.find_all('h3')]
+    elements["h4"] = [h4.get_text() for h4 in soup.find_all('h4')]
+    elements["h5"] = [h5.get_text() for h5 in soup.find_all('h5')]
+    elements["h6"] = [h6.get_text() for h6 in soup.find_all('h6')]
+    elements["li"] = [li.get_text() for li in soup.find_all('li')]
+    elements["td"] = [td.get_text() for td in soup.find_all('td')]
+    elements["p"] = [p.get_text() for p in soup.find_all('p')]
+
+    keywords_tag: bs.Tag | None = soup.find('meta', attrs={"name": "keywords"})
+
+    if keywords_tag:
+
+        elements["meta"] = [keywords_tag.get("content", "")]
+    
+    return elements
