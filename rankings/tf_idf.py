@@ -2,15 +2,17 @@
 
 import math
 
+from inverted_index import Inverted_index
+
 import tokenizor as tok
 
-from inverted_index import Inverted_index
+import utils
 
 class Tf_idf():
 
     _index: Inverted_index
 
-    # Tag Weights should be ints
+    # Tag Weights should be positive ints
     _tag_weights: dict = {
 
         "title": 50,
@@ -21,9 +23,9 @@ class Tf_idf():
         "h5": 1,
         "h6": 1,
         "li": 1,
-        "td": 1,
+        "td": 10, 
         "p": 1,
-        "meta": 1
+        "meta": 10 
 
     }
 
@@ -49,13 +51,23 @@ class Tf_idf():
 
         return tf
     
+    def calculate_unweighted_tf(self, postings_entry: dict) -> int:
+
+        tf: int = 0
+
+        for frequency in postings_entry.values():
+
+            tf += frequency
+
+        return tf
+    
     def calculate_tf_idf(self, tf: int, df: int, N: int) -> float:
 
-        return (1 + math.log(tf, 10)) * math.log(N / df, 10)
+        return (1 + math.log10(tf)) * math.log10(N / df)
 
     def process_query(self, query: str) -> str:
 
-        query_terms: set = set(tok.create_tokens(query))
+        query_terms: set = set(tok.tokenize_query(query))
 
         if len(set(query_terms) & self._index.get_vocab().keys()) == 0:
 
@@ -99,8 +111,12 @@ class Tf_idf():
         for docID, scores in document_scores.items():
 
             summed_scores.append([docID, sum(scores)])
+
+        query_results: str = self.produce_results_with_summary(summed_scores, query_terms)
+
+        #self.store_results("saved_data", query, query_results)
         
-        return self.produce_results(summed_scores)
+        return query_results
     
     def produce_results(self, document_scores: list) -> str:
 
@@ -112,7 +128,10 @@ class Tf_idf():
 
         for score in ordered_scores:
 
-            query_results += self._index.get_docName(score[0]) + " -> " + str(score[1]) + "\n\n"
+            # Return document html title in queries
+            doc_name: str = utils.get_document_title("test_data", self._index.get_doc_name(score[0]))
+
+            query_results += doc_name + " -> " + str(score[1]) + "\n\n"
 
             score_count += 1
 
@@ -122,6 +141,44 @@ class Tf_idf():
                 break
         
         return query_results
+    
+    def produce_results_with_summary(self, document_scores: list, query_terms: set) -> str:
+
+        ordered_scores = sorted(document_scores, key = lambda x: x[1], reverse = True) 
+
+        query_results: str = ""
+
+        score_count: int = 0
+
+        for score in ordered_scores:
+
+            # Return document html title in queries
+            doc_name: str = utils.get_document_title("test_data", self._index.get_doc_name(score[0]))
+
+            doc_summary: str = utils.get_document_summary("test_data", self._index.get_doc_name(score[0]), query_terms)
+
+            query_results += "----------------------------------------------------" + "\n\n" 
+            query_results += f"<No. {score_count + 1}> : " + doc_name + "\n\n" 
+            query_results += "<URL> : " + self._index.get_doc_name(score[0]) + "\n\n" 
+            query_results += "<Summary> : \n" + doc_summary + "\n\n"
+            query_results += "----------------------------------------------------" + "\n\n" 
+                
+            score_count += 1
+
+            # To get top 10 results only
+            if score_count == 10:
+
+                break
+        
+        return query_results
+    
+    def store_results(self, dir_name: str, query: str, query_results: str) -> None:
+
+        saved_data: str = query + "\n\n" + query_results + "\n\n"
+
+        with open(dir_name + "/results.txt", "a", encoding = "utf-8") as f:
+
+            f.write(saved_data)
 
 def test_tf_idf() -> None:
 

@@ -3,7 +3,7 @@
 import math
 
 from inverted_index import Inverted_index
-from tf_idf import Tf_idf
+from rankings.tf_idf import Tf_idf
 
 import tokenizor as tok
 
@@ -65,7 +65,7 @@ class Vector_space(Tf_idf):
 
     def process_query(self, query: str) -> str:
 
-        query_terms: list = tok.create_tokens(query)
+        query_terms: list = tok.tokenize_query(query)
 
         if len(set(query_terms) & self._index.get_vocab().keys()) == 0:
 
@@ -137,4 +137,6 @@ class Vector_space(Tf_idf):
 
             document_scores.append([docID, cosine_score])
 
-        return self.produce_results(document_scores)
+        query_results: str = self.produce_results_with_summary(document_scores, set(query_terms))
+
+        return query_results
