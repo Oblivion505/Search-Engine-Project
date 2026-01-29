@@ -1,6 +1,6 @@
 # Search Engine Experimentation Project
 
-The purpose of this Python project is to experiment with different Natural Language Processing techniques using a test dataset. The Search Engine program runs a Tkinter GUI where the user can input queries and view the results of the query in an ouput box. The currently implemented ranking algorithms are TF-IDF, Vector Space (using Cosine Similarity), and BM25. Additional NLP techniques that have been implemented include: Stop Words, Tag Weighting, Stemming, Lemmatization, Query Expansion, and Named Entity Recognition.  
+The purpose of this Python project is to experiment with different Natural Language Processing techniques using a test dataset of HTML pages. The Search Engine program runs a Tkinter GUI where the user can input queries and view the results of the query in an ouput box. The currently implemented ranking algorithms are TF-IDF, Vector Space (using Cosine Similarity), and BM25. Additional NLP techniques that have been implemented include: Stop Words, Tag Weighting, Stemming, Lemmatization, Query Expansion, and Named Entity Recognition. The HTML test data I used was based around Video Games.
 
 # Dependencies
 
