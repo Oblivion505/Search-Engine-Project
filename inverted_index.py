@@ -3,6 +3,7 @@
 import json
 
 import tokenizor as tok
+import named_entities as ner
 
 import utils
 
@@ -11,7 +12,9 @@ class Inverted_index():
     _docIDs: dict # Maps docIDs to doc names
     _vocab: dict # Maps vocab names to vocabIDs
     _postings: dict # Maps vocabIDs to docIDs of appearances
-    _doc_lengths: dict # Maps docIDs to doc lengths (for BM25 ranking)
+    _doc_lengths: dict # Maps docIDs to doc lengths (for BM25 ranking) 
+    _entities: dict # Maps entity names to entityIDs
+    _entity_postings: dict # Maps entityIDs to docIDs of named entity appearances
 
     def __init__(self) -> None:
 
@@ -19,6 +22,8 @@ class Inverted_index():
         self._vocab = {}
         self._postings = {}
         self._doc_lengths = {}
+        self._entities = {}
+        self._entity_postings = {}
     
     def create(self, docs: dict) -> None:
 
@@ -30,6 +35,9 @@ class Inverted_index():
         doc_tokens: dict = {}
         token_keys: list= []
 
+        doc_named_entities: dict = {}
+        entity_keys: list = []
+
         for doc_name, doc in docs.items():
 
             self._doc_lengths[self.get_docID(doc_name)] = utils.get_document_length(docs[doc_name])
@@ -39,9 +47,18 @@ class Inverted_index():
             doc_tokens[doc_name] = token_dict
             token_keys += token_dict.keys()
 
+            ner_dict: dict = ner.named_entities_from_doc(doc)
+
+            doc_named_entities[doc_name] = ner_dict
+            entity_keys += ner_dict.keys()
+
         for key in token_keys:
 
             self._add_vocab(key)
+
+        for key in entity_keys:
+
+            self._add_entity(key)
 
         for vocab, vocabID in self._vocab.items():
 
@@ -56,6 +73,20 @@ class Inverted_index():
                         appearances[self.get_docID(doc_name)] = frequencies
             
             self._add_postings(vocabID, appearances)
+
+        for entity, entityID in self._entities.items():
+
+            appearances: dict = {}
+
+            for doc_name, ner_dict in doc_named_entities.items():
+
+                for entity_text, frequencies in ner_dict.items():
+
+                    if entity == entity_text:
+
+                        appearances[self.get_docID(doc_name)] = frequencies
+            
+            self._add_entity_postings(entityID, appearances)
     
     def save(self) -> None:
 
@@ -67,7 +98,11 @@ class Inverted_index():
 
             "postings": self._postings,
 
-            "doc_lengths": self._doc_lengths
+            "doc_lengths": self._doc_lengths,
+
+            "entities": self._entities,
+
+            "entity_postings": self._entity_postings
         }
 
         json_string: str = json.dumps(save_data, indent = 4)
@@ -104,6 +139,14 @@ class Inverted_index():
             if "doc_lengths" in file_data.keys():
 
                 self._doc_lengths = file_data["doc_lengths"]
+
+            if "entities" in file_data.keys():
+
+                self._entities = file_data["entities"]
+
+            if "entity_postings" in file_data.keys():
+
+                self._entity_postings = file_data["entity_postings"]
             
             return True
         
@@ -130,6 +173,18 @@ class Inverted_index():
         if key not in self._postings.keys():
 
             self._postings[key] = appearances
+
+    def _add_entity(self, named_entity: str) -> None:
+
+        if named_entity not in self._entities.keys():
+
+            self._entities[named_entity] = len(self._entities)
+
+    def _add_entity_postings(self, key: int, appearances: dict) -> None:
+
+        if key not in self._entity_postings.keys():
+
+            self._entity_postings[key] = appearances
     
     def get_doc_name(self, docID: int) -> str:
 
@@ -180,6 +235,14 @@ class Inverted_index():
     def get_doc_lengths(self) -> dict:
 
         return self._doc_lengths
+    
+    def get_entities(self) -> dict:
+
+        return self._entities
+    
+    def get_entities_postings(self) -> dict:
+
+        return self._entity_postings
 
 def test_inverted_index():
 
