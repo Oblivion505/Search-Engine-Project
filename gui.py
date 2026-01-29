@@ -6,6 +6,7 @@ from inverted_index import Inverted_index
 from rankings.tf_idf import Tf_idf
 from rankings.vector_space import Vector_space
 from rankings.bm25 import BM25
+from rankings.ner import Ner
 
 class Gui():
 
@@ -71,6 +72,14 @@ class Gui():
 
         self.update_current_ranking_label("Current Ranking: BM25")
 
+    def use_ner_ranking(self) -> None:
+
+        self.set_ranking(Ner(self._ranking.get_index()))
+
+        self.update_output("Now using TF-IDF with NER! (Named Entity Recognition)")
+
+        self.update_current_ranking_label("Current Ranking: TF-IDF with NER")
+
     def run(self) -> None:
 
         root: tk.Tk = tk.Tk()
@@ -101,7 +110,7 @@ class Gui():
         self.set_output_box(output_box)
 
         current_ranking_label: tk.Label = tk.Label(root, text="Current Ranking: TF-IDF", font = SMALL_FONT)
-        current_ranking_label.place(relx=0.75, rely=0.3, anchor="center")
+        current_ranking_label.place(relx=0.75, rely=0.35, anchor="center")
 
         self.set_current_ranking_label(current_ranking_label)
 
@@ -116,6 +125,9 @@ class Gui():
 
         bm25_ranking_button: tk.Button = tk.Button(root, text="Use BM25 Ranking", command=lambda: self.use_bm25_ranking())
         bm25_ranking_button.place(relx=0.75, rely=0.25, anchor="center")
+
+        ner_ranking_button: tk.Button = tk.Button(root, text="Use TF-IDF with NER Ranking", command=lambda: self.use_ner_ranking())
+        ner_ranking_button.place(relx=0.75, rely=0.3, anchor="center")
 
         root.mainloop()
 
