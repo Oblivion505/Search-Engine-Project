@@ -1,3 +1,5 @@
+# --- Improves on TF-IDF by taking document length into account in TF calculation ---
+
 from inverted_index import Inverted_index
 from rankings.tf_idf import Tf_idf
 
