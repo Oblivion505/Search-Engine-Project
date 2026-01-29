@@ -17,7 +17,7 @@ The purpose of this Python project is to experiment with different Natural Langu
 
 - Navigate to the main project directory.
   
-- Replace the data in the ``` test_data ``` directory with your own set of HTML documents, or use the existing data.
+- Replace the data in the ``` test_data ``` directory with your own set of HTML documents, or use the existing data. A large dataset is recommended for testing queries.
   
 - Run ``` python main.py ``` once to create the index, this may take a while depending on the dataset size.
   
